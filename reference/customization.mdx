@@ -1,7 +1,7 @@
 ---
-title: "Customize WaterTrack Colors and Behavior"
+title: "Customize WaterTrack: Colors, Chips, Slider, and Confetti"
 sidebarTitle: "Customization"
-description: "Fork WaterTrack and adjust CSS custom properties, quick-chip values, and slider range to match your preferences or house style."
+description: "Fork WaterTrack and adjust CSS custom properties, quick-chip values, slider range, and the confetti script to match your preferences."
 ---
 
 WaterTrack is a single-file static web app with no build system, no bundler, and no dependencies to install. Every customisation is made by directly editing `style.css` for visual changes or `index.html` (and occasionally `script.js`) for structural and behavioural changes. There is nothing to recompile — just save the file and refresh your browser.
@@ -42,7 +42,9 @@ WaterTrack ships with a `@media (prefers-color-scheme: dark)` block at the botto
 - `body` background switches to `rgb(20, 20, 20)` with white text.
 - The `header` background switches from `var(--background-dark)` to `var(--gradient)`, giving it a colourful bar instead of a plain black one.
 - Header text (`h1`, `p`) switches to black to stay readable against the gradient.
-- The settings panel background switches to `rgb(20, 20, 20)` with white text.
+- The `#amount-slider` track background switches to `#94daff` (a flat colour rather than the default gradient).
+- The `#logged-drinks h1` heading colour switches to white so it remains legible on the dark background.
+- The settings panel background switches to `rgb(20, 20, 20)` with white text, and its `h1` heading colour switches to white.
 - The settings icon stroke switches from `var(--accent)` to black.
 
 To force dark mode regardless of OS preference, copy the property overrides out of the `@media` block and merge them into the base selectors (`body`, `header`, `#settings-panel`, etc.).

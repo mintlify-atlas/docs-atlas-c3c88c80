@@ -47,8 +47,8 @@ WaterTrack writes to exactly two `localStorage` keys each time you log a drink.
 Each entry in `water_logged_drinks` is a plain object with two fields: `amount` (the number of ounces logged) and `time` (a locale-formatted time string such as `"09:30 AM"`).
 
 ```json
-// water_logged_drinks value example
-[{"amount": 8, "time": "09:30 AM"}, {"amount": 16, "time": "11:15 AM"}]
+// water_logged_drinks value example (newest entry first)
+[{"amount": 16, "time": "11:15 AM"}, {"amount": 8, "time": "09:30 AM"}]
 ```
 
 On page load, both keys are read back with `JSON.parse` and used to restore the counter and re-render the drink list, so the UI always reflects exactly what was saved.
