@@ -1,0 +1,114 @@
+---
+title: "View and Understand Your Drink History Log"
+sidebarTitle: "Drink Log"
+description: "WaterTrack's drink log shows every recorded drink with its amount and timestamp, persisted in localStorage so your history survives page reloads."
+---
+
+The **Logged drinks** section at the bottom of the WaterTrack page is a live, scrollable history of every drink you have recorded in the current day. Each entry shows the fluid ounce amount and the exact time it was logged. Because the entire list is serialised to `localStorage` on every update, your history survives page refreshes, browser restarts, and device sleeps — it will be right there the next time you open the app.
+
+## Log structure
+
+Each entry in the list is a `<li>` element with the class `drink-entry`, containing two `<span>` children:
+
+```html
+<li class="drink-entry">
+  <span>16 oz</span>
+  <span class="drink-time">08:45 AM</span>
+</li>
+```
+
+- The first `<span>` displays the logged amount followed by ` oz`.
+- The `.drink-time` `<span>` shows the timestamp formatted as locale-aware `HH:MM AM/PM`, produced by:
+
+```js
+function getFormattedTime() {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+```
+
+New entries are **prepended** to the list (newest at the top) via `drinks.prepend(li)`, so the most recent drink is always visible without scrolling.
+
+## Empty state
+
+The list always displays a placeholder message when no drinks have been logged yet. The exact message depends on the context:
+
+<CardGroup cols={2}>
+  <Card title="Initial load / no history" icon="droplet">
+    When the page loads and `localStorage` contains no drink data, the list renders:
+
+    *"No logged drinks"*
+  </Card>
+  <Card title="After a reset" icon="arrow-rotate-left">
+    When you confirm a reset via the Settings panel, the list is replaced with:
+
+    *"No drinks logged yet today!"*
+  </Card>
+</CardGroup>
+
+Both messages use the `.empty-state` CSS class, which centres and italicises the text in a muted grey:
+
+```css
+.empty-state {
+    text-align: center;
+    color: #888;
+    padding: 12px 0;
+    font-style: italic;
+}
+```
+
+## Persistence
+
+Every time `logDrink()` is called, the full drinks array is immediately written to `localStorage` under the key `water_logged_drinks` as a JSON-serialised array of `{ amount, time }` objects:
+
+```js
+loggedDrinksList.unshift({ amount, time });
+saveToLs(DRINKS_KEY, loggedDrinksList);
+```
+
+The resulting value stored in `localStorage` looks like this:
+
+```json
+[
+  { "amount": 16, "time": "08:45 AM" },
+  { "amount": 8,  "time": "07:30 AM" }
+]
+```
+
+On the next page load, `DOMContentLoaded` fires and the saved array is read back:
+
+```js
+let loggedDrinksList = loadfromLs(DRINKS_KEY) || [];
+
+if (loggedDrinksList.length > 0) {
+    [...loggedDrinksList].reverse().forEach(drink => {
+        renderDrinkUI(drink.amount, drink.time);
+    });
+}
+```
+
+The array is reversed before iterating so that `renderDrinkUI()` — which always prepends — reconstructs the list in the correct newest-first order.
+
+<Info>
+  The running total is stored separately under the key `water_total_intake` as a plain number. Both keys are cleared together when you use the Reset button.
+</Info>
+
+## Scrolling
+
+The `#drinks` list has a capped height with vertical scrolling enabled, so the rest of the page layout stays clean no matter how many drinks you log in a day:
+
+```css
+#drinks {
+    list-style: none;
+    padding: 0;
+    margin: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+```
+
+Once the rendered entries exceed **250 px**, a native scroll bar appears and the section becomes independently scrollable. Earlier entries are a simple scroll away — nothing is ever hidden or truncated.
+
+<Tip>
+  At the end of the day, scroll through the drink log to verify you hit your intake goal. The timestamps make it easy to spot any long gaps and adjust your habits tomorrow.
+</Tip>

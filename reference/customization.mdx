@@ -1,0 +1,112 @@
+---
+title: "Customize WaterTrack Colors and Behavior"
+sidebarTitle: "Customization"
+description: "Fork WaterTrack and adjust CSS custom properties, quick-chip values, and slider range to match your preferences or house style."
+---
+
+WaterTrack is a single-file static web app with no build system, no bundler, and no dependencies to install. Every customisation is made by directly editing `style.css` for visual changes or `index.html` (and occasionally `script.js`) for structural and behavioural changes. There is nothing to recompile — just save the file and refresh your browser.
+
+## CSS custom properties
+
+Three CSS custom properties declared in `:root` control the entire color scheme. Changing these values re-skins every interactive element — chips, borders, sliders, and buttons — without touching anything else.
+
+```css style.css
+:root {
+    --background: white;
+    --background-dark: black;
+
+    --accent: #6fcdff;           /* chip backgrounds, borders, slider fill */
+    --gradient: linear-gradient(90deg, #94daff, #6fcdff); /* Log button */
+    --warning: linear-gradient(90deg, #ff6f6f, #ff5252);  /* Reset button */
+}
+```
+
+`--accent` and `--gradient` are the two most impactful variables. `--accent` is used for quick-chip backgrounds, the logged-drinks card border, drink entry rows, the settings panel border, and the slider track. `--gradient` drives the **Log** button background. `--warning` controls the **Reset** button and should be left red to communicate destructive intent.
+
+**Example: green water theme**
+
+```css
+:root {
+    --accent: #6fcf97;
+    --gradient: linear-gradient(90deg, #a8e6bc, #6fcf97);
+    --warning: linear-gradient(90deg, #ff6f6f, #ff5252);
+}
+```
+
+---
+
+## Dark mode
+
+WaterTrack ships with a `@media (prefers-color-scheme: dark)` block at the bottom of `style.css`. When the OS is in dark mode, the following overrides activate automatically:
+
+- `body` background switches to `rgb(20, 20, 20)` with white text.
+- The `header` background switches from `var(--background-dark)` to `var(--gradient)`, giving it a colourful bar instead of a plain black one.
+- Header text (`h1`, `p`) switches to black to stay readable against the gradient.
+- The settings panel background switches to `rgb(20, 20, 20)` with white text.
+- The settings icon stroke switches from `var(--accent)` to black.
+
+To force dark mode regardless of OS preference, copy the property overrides out of the `@media` block and merge them into the base selectors (`body`, `header`, `#settings-panel`, etc.).
+
+---
+
+## Quick-chip amounts
+
+The five quick-log chips are plain `<button class="quick-chip">` elements in `index.html`. Their visible text is the only source of truth for the amount they log — `script.js` reads each button's `textContent` and parses it with `parseInt(chip.textContent, 10)`.
+
+```html index.html
+<div id="quick-chips">
+    <button class="quick-chip">4</button>
+    <button class="quick-chip">8</button>
+    <button class="quick-chip">12</button>
+    <button class="quick-chip">16</button>
+    <button class="quick-chip">24</button>
+</div>
+```
+
+You can add or remove `<button class="quick-chip">` elements freely. The CSS automatically rounds the corners of the first and last child, so the pill shape adjusts to however many buttons are present. The ` oz` suffix displayed on each chip is injected by the CSS pseudo-element `.quick-chip::after { content: ' oz'; }` — the raw number in the HTML is all that needs to change.
+
+---
+
+## Slider range
+
+The custom-amount range input is defined in `index.html` with explicit `min`, `max`, `step`, and `value` attributes:
+
+```html index.html
+<input type="range" id="amount-slider"
+       name="amount-slider"
+       min="2" max="80" step="2" value="8">
+```
+
+Adjust any of these to suit your preferences:
+
+- **`min`** — lowest selectable value (currently `2` oz).
+- **`max`** — highest selectable value (currently `80` oz).
+- **`step`** — increment between positions (currently `2` oz).
+- **`value`** — the slider's default position on page load and after each log (currently `8` oz).
+
+If you change the `value` default, also update the two lines in `script.js` that reset the slider back to `8` after each **Log** button press. For example, to change the default to `12`:
+
+```javascript script.js
+// After logging, reset slider to default
+if (amountSliderCurrent) amountSliderCurrent.innerHTML = '8'; // [!code --]
+if (amountSlider) amountSlider.value = 8;                     // [!code --]
+if (amountSliderCurrent) amountSliderCurrent.innerHTML = '12'; // [!code ++]
+if (amountSlider) amountSlider.value = 12;                    // [!code ++]
+```
+
+---
+
+## Removing the confetti dependency
+
+WaterTrack loads a confetti animation library from the jsDelivr CDN. It is the only external network dependency in the project. To remove it, delete the `<script>` tag from `index.html`:
+
+```html
+<!-- Remove this line from index.html -->
+<script src="https://cdn.jsdelivr.net/npm/@hiseb/confetti@2.1.0/dist/confetti.min.js"></script>
+```
+
+Then remove the `celebrate()` calls from the two click handlers in `script.js` — one inside the `logButton` click listener and one inside the `quickChips.forEach` callback. The `celebrate()` function itself guards against `confetti` being undefined (`if (typeof confetti === 'function')`), so omitting the script tag will not cause errors — but removing the dead calls keeps the code clean.
+
+<Tip>
+  To switch WaterTrack to metric (millilitres instead of oz), make three edits: change `<span id="intake-unit">oz</span>` to `ml` in `index.html`; update the quick-chip values and slider `min`/`max`/`step`/`value` to sensible ml amounts (e.g. chips of 100, 200, 250, 350, 500 and a slider up to 1000); and update the `.quick-chip::after` pseudo-element in `style.css` from `content: ' oz'` to `content: ' ml'`.
+</Tip>

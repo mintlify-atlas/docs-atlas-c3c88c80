@@ -1,0 +1,101 @@
+---
+title: "localStorage Keys Used by WaterTrack"
+sidebarTitle: "localStorage"
+description: "WaterTrack stores all data in two localStorage keys. Learn their names, formats, and how to read, modify, or clear them from the browser console."
+---
+
+WaterTrack uses the browser's built-in `localStorage` as its only data store — no cookies, no IndexedDB, no server. Every drink you log and every running total is persisted entirely in two keys, both of which hold JSON-serialised values. Because there is no backend, all data lives on the device in the browser that recorded it.
+
+## `water_total_intake`
+
+| Property | Value |
+|---|---|
+| **Type** | JSON number |
+| **Default** | `0` (missing key is treated as `0`) |
+| **Updated** | Every time a drink is logged |
+
+This key holds the running total of water logged in ounces for the current session. Each time the user taps **Log** or a quick-chip button, `logDrink()` adds the new amount to the existing value and immediately writes it back via `saveToLs`.
+
+**Read it from the browser console:**
+
+```javascript
+const total = JSON.parse(localStorage.getItem('water_total_intake'));
+console.log(total); // e.g. 48
+```
+
+**Manually set it to a specific value:**
+
+```javascript
+localStorage.setItem('water_total_intake', JSON.stringify(64));
+```
+
+---
+
+## `water_logged_drinks`
+
+| Property | Value |
+|---|---|
+| **Type** | JSON array of `{ amount: number, time: string }` objects |
+| **Default** | `[]` (missing key is treated as an empty array) |
+| **Updated** | Every time a drink is logged (new entry prepended at index `0`) |
+
+This key holds the ordered list of every drink logged in the current session. New entries are prepended with `unshift()`, so the most recent drink is always at index `0`. Each entry has two fields:
+
+- **`amount`** — integer oz value logged for that drink.
+- **`time`** — locale-formatted time string produced by `toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })`.
+
+**Example stored value:**
+
+```json
+[
+  { "amount": 16, "time": "02:30 PM" },
+  { "amount": 8,  "time": "12:00 PM" },
+  { "amount": 24, "time": "09:15 AM" }
+]
+```
+
+**Read the full list from the browser console:**
+
+```javascript
+const drinks = JSON.parse(localStorage.getItem('water_logged_drinks')) || [];
+console.log(drinks);
+```
+
+**Clear just the drink history without resetting the running total:**
+
+```javascript
+localStorage.removeItem('water_logged_drinks');
+```
+
+---
+
+## Clearing all data
+
+The following two lines are equivalent to pressing the **Reset** button in the settings panel. They remove both keys so the app returns to its zero state on the next render:
+
+```javascript
+localStorage.removeItem('water_total_intake');
+localStorage.removeItem('water_logged_drinks');
+```
+
+---
+
+## Internal helper functions
+
+Two private functions inside `script.js` handle all localStorage reads and writes. They are not part of a public API, but understanding them is helpful when debugging unexpected behaviour.
+
+**`saveToLs(name, item)`**
+
+JSON-serialises `item` and writes it to localStorage under the key `name` using `localStorage.setItem(name, ...)`. The entire operation is wrapped in a `try/catch`; if serialisation or the write fails, the error is logged to the console and the call returns silently.
+
+**`loadfromLs(name)`**
+
+Reads the raw string stored at `name` with `localStorage.getItem(name)`, parses it with `JSON.parse`, and returns the resulting value. Returns `null` on any failure (missing key, invalid JSON, etc.) rather than throwing. Callers use the `|| 0` and `|| []` fallback pattern to substitute safe defaults when `null` is returned.
+
+<Note>
+  localStorage is scoped to the browser origin. Data stored while running WaterTrack on `localhost` is not accessible from a deployed URL (e.g. `https://example.com`) and vice versa.
+</Note>
+
+<Warning>
+  Manually editing localStorage values with incorrect JSON will cause parse errors. WaterTrack's `loadfromLs` helper catches these errors and returns `null`, which the app silently falls back to its default state — but any data stored under that key will be ignored until it is replaced with a valid value.
+</Warning>

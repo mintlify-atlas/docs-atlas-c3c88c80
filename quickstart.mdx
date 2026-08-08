@@ -1,47 +1,100 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with WaterTrack in Under 5 Minutes"
+sidebarTitle: "Quickstart"
+description: "Learn how to run WaterTrack locally, deploy it to GitHub Pages, or self-host it on any static file server in just a few steps."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+WaterTrack has no build step, no server, and no package manager — getting it running takes only as long as it takes to move four files into place. This guide walks through three paths: running the app locally straight from the file system, deploying it for free on GitHub Pages, and self-hosting it on any static file server of your choice.
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+## Run Locally
 
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+The fastest way to use WaterTrack is to clone the repository and open `index.html` directly in your browser. Because the app is built with plain HTML, CSS, and vanilla JavaScript, no local server or compilation is required.
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+  <Step title="Clone the repository">
+    Run the following command in your terminal to download the project files:
 
     ```bash
-    npm install your-package
+    git clone https://github.com/mr-sunset/watertracker.git
     ```
+
+    This creates a `watertracker/` directory containing `index.html`, `script.js`, `style.css`, and `favicon.png`.
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+  <Step title="Open index.html in your browser">
+    Navigate into the cloned directory and open `index.html` directly — no build step, no `npm install`, no local server needed:
 
     ```bash
-    your-cli init
+    cd watertracker
+    open index.html        # macOS
+    # — or —
+    start index.html       # Windows
+    # — or —
+    xdg-open index.html    # Linux
     ```
+
+    You can also drag and drop `index.html` onto any open browser window or tab.
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
-
-    ```bash
-    your-cli start
-    ```
+  <Step title="Start logging water!">
+    Tap one of the quick-log chips (**4, 8, 12, 16, or 24 oz**), or drag the slider to a custom amount and press **Log**. Your total updates instantly, confetti fires, and every drink is saved to `localStorage` automatically.
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## Deploy to GitHub Pages
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+GitHub Pages lets you host WaterTrack for free at a public URL so you can reach it from any device without self-hosting infrastructure.
+
+<Steps>
+  <Step title="Fork the repository on GitHub">
+    Visit the [WaterTrack repository](https://github.com/mr-sunset/watertracker) on GitHub and click **Fork** in the top-right corner. This creates your own copy of the repo under your GitHub account.
+  </Step>
+  <Step title="Enable GitHub Pages in repository settings">
+    In your forked repository, go to **Settings** → **Pages** (under the *Code and automation* section). Under **Source**, select **Deploy from a branch**, choose the `main` branch, and set the folder to `/ (root)`. Click **Save**.
+  </Step>
+  <Step title="Visit your live site">
+    GitHub will build and publish the site within a minute or two. Once the Pages section shows a green banner, your WaterTrack instance is live at:
+
+    ```
+    https://<your-username>.github.io/watertracker/
+    ```
+
+    Replace `<your-username>` with your actual GitHub username.
+  </Step>
+</Steps>
+
+## Self-Host on a Static File Server
+
+If you already have a server or a hosting platform, deploying WaterTrack is as simple as copying four files.
+
+<Steps>
+  <Step title="Copy the project files to your server">
+    Upload or copy the following four files to your web root (or a subdirectory of your choice):
+
+    ```
+    index.html
+    script.js
+    style.css
+    favicon.png
+    ```
+
+    These are the only files the app needs. There is no `dist/` folder to build.
+  </Step>
+  <Step title="Serve the files with any static file server">
+    WaterTrack works with any server or platform that can serve static files, including:
+
+    - **nginx** or **Apache** — point the document root at the directory containing `index.html`
+    - **Caddy** — a one-line `file_server` directive is all that's needed
+    - **Netlify** or **Vercel** — drag-and-drop the folder in their dashboards or push to a connected Git repo
+    - **Any shared hosting** — FTP the files and you're done
+  </Step>
+  <Step title="No special configuration required">
+    There are no API routes, no server-side rendering, no environment variables, and no rewrite rules to configure. Once the files are accessible over HTTP or HTTPS, the app is fully operational.
+  </Step>
+</Steps>
+
+<Note>
+  WaterTrack has no back-end, database, or build pipeline. The only external dependency is the confetti script loaded from the jsDelivr CDN (`https://cdn.jsdelivr.net/npm/@hiseb/confetti@2.1.0/dist/confetti.min.js`). If you need to work fully offline or in an environment that blocks CDN requests, the confetti effect won't fire — but every other feature, including drink logging and localStorage persistence, works perfectly without it.
+</Note>
+
+<Tip>
+  Add WaterTrack to your browser's bookmarks bar or use your browser's **"Add to Home Screen"** feature on mobile for one-tap access. Returning to the same URL each day means your localStorage data is always right where you left it, making it easy to build a consistent hydration habit.
 </Tip>

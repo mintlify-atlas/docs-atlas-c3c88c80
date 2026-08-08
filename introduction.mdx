@@ -1,0 +1,71 @@
+---
+title: "WaterTrack: Zero-Setup Browser Water Intake Tracker"
+sidebarTitle: "Introduction"
+description: "WaterTrack is a client-only web app that logs daily water intake with quick-chip buttons, a custom slider, and localStorage — no sign-up or server needed."
+---
+
+WaterTrack is a lightweight, zero-setup water intake tracker that runs entirely inside your browser. There is no account to create, no server to configure, and no build step to run — just open `index.html` and start logging. Every drink you record is saved directly to your browser's `localStorage`, so your data survives page refreshes and browser restarts without ever leaving your device.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Quick-Log Chips" icon="bolt">
+    Five one-tap buttons let you instantly log the most common drink sizes: **4, 8, 12, 16, and 24 oz**. Each tap records the amount and the current time with no extra interaction required.
+  </Card>
+  <Card title="Custom Amount Slider" icon="sliders">
+    A smooth range slider lets you dial in any amount from **2 to 80 oz** in 2 oz increments. The current selection is displayed live above the slider before you hit **Log**.
+  </Card>
+  <Card title="Timestamped Drink Log" icon="clock">
+    Every logged drink appears in a scrollable list showing the amount and the exact time it was recorded. The newest entry is always at the top, giving you a clear picture of your hydration timeline.
+  </Card>
+  <Card title="localStorage Persistence" icon="database">
+    Your running total and full drink history are serialised as JSON and stored under two `localStorage` keys. Data survives page reloads automatically — no sync, no cloud, no login.
+  </Card>
+  <Card title="Confetti Celebration" icon="party-horn">
+    Every time you log a drink, a burst of confetti fires across the screen via the `@hiseb/confetti` library, making the habit just a little more fun to build.
+  </Card>
+  <Card title="Dark Mode" icon="moon">
+    WaterTrack respects the `prefers-color-scheme` media query and automatically switches to a dark theme when your OS or browser is set to dark mode — no toggle needed.
+  </Card>
+  <Card title="Settings & Reset Panel" icon="gear">
+    A settings panel (opened with the gear icon in the header) lets you wipe your daily data with a single **Reset** button. A confirmation prompt prevents accidental clears.
+  </Card>
+  <Card title="Animated Intake Counter" icon="arrow-up">
+    The large running total at the top of the page pulses with a scale-and-colour animation every time a new drink is added, giving instant visual feedback on your progress.
+  </Card>
+</CardGroup>
+
+## How Data Is Stored
+
+WaterTrack writes to exactly two `localStorage` keys each time you log a drink.
+
+| Key | Type | Description |
+|---|---|---|
+| `water_total_intake` | `number` (JSON-serialised) | The cumulative ounce total for the current session. |
+| `water_logged_drinks` | `object[]` (JSON-serialised) | An ordered array of every drink logged, newest first. |
+
+Each entry in `water_logged_drinks` is a plain object with two fields: `amount` (the number of ounces logged) and `time` (a locale-formatted time string such as `"09:30 AM"`).
+
+```json
+// water_logged_drinks value example
+[{"amount": 8, "time": "09:30 AM"}, {"amount": 16, "time": "11:15 AM"}]
+```
+
+On page load, both keys are read back with `JSON.parse` and used to restore the counter and re-render the drink list, so the UI always reflects exactly what was saved.
+
+<Note>
+  WaterTrack stores data only in the browser where you opened it. If you open the app on a different device — or in a different browser on the same device — you will see a fresh, empty state. There is no cross-device sync.
+</Note>
+
+## Technology
+
+WaterTrack is intentionally dependency-free on the authoring side.
+
+| Layer | Choice |
+|---|---|
+| Markup | Plain **HTML5** — a single `index.html` file |
+| Styles | **CSS custom properties** (`--accent`, `--gradient`, `--warning`, etc.) with a `@media (prefers-color-scheme: dark)` block for automatic dark mode |
+| Behaviour | **Vanilla JavaScript** (ES2015+) — no framework, no bundler, no `node_modules` |
+| Confetti | [`@hiseb/confetti@2.1.0`](https://cdn.jsdelivr.net/npm/@hiseb/confetti@2.1.0/dist/confetti.min.js) loaded from the jsDelivr CDN at runtime |
+
+The only network request the app ever makes is fetching the confetti script from jsDelivr. All core functionality — logging, persisting, and displaying drinks — works with that script absent.

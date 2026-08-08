@@ -1,0 +1,117 @@
+---
+title: "Log Your Water Intake with Chips and the Slider"
+sidebarTitle: "Logging Water"
+description: "Use WaterTrack's quick-log chips or the custom amount slider to record water intake in seconds. Both methods update your total and save to localStorage immediately."
+---
+
+WaterTrack gives you two ways to record a drink: tap one of the five **quick-log chips** for a common preset amount, or drag the **custom amount slider** to any value you need, then press **Log**. Either path calls the same `logDrink(amount)` function under the hood, immediately adds the drink to your history, updates the running total displayed on screen, and writes everything to `localStorage` — so your data is never lost on a page reload.
+
+## Quick-log chips
+
+The five pill-shaped chips near the top of the screen let you record the most common drink sizes in a single tap — no slider adjustment required.
+
+| Chip label | Fluid ounces logged |
+|------------|---------------------|
+| 4          | 4 oz                |
+| 8          | 8 oz                |
+| 12         | 12 oz               |
+| 16         | 16 oz               |
+| 24         | 24 oz               |
+
+Tapping any chip fires three things at once:
+
+<Steps>
+  <Step title="logDrink(amount) is called">
+    The chip's text content is parsed as an integer and passed directly to `logDrink()`, which updates the in-memory total, prepends a new entry to the drink list, and saves both values to `localStorage`.
+  </Step>
+  <Step title="Confetti celebration fires">
+    The `celebrate()` helper triggers the bundled confetti library (`@hiseb/confetti`) with 100 particles at velocity 400, giving you instant visual feedback.
+  </Step>
+  <Step title="Pop animation plays on the counter">
+    The `pop` CSS class is added to the `#intake` element, scaling the number up and flashing it to `#6fcdff`. The class is removed automatically once the animation ends (see [Intake counter animation](#intake-counter-animation) below).
+  </Step>
+</Steps>
+
+Because the chips bypass the slider entirely, the slider value stays wherever it was — there is nothing to reset after a chip tap.
+
+## Custom amount slider
+
+When a preset chip size doesn't match what you drank, use the range slider to dial in the exact amount.
+
+```html
+<input type="range" id="amount-slider"
+       min="2" max="80" step="2" value="8">
+```
+
+- **Range:** 2 oz to 80 oz
+- **Step:** 2 oz increments
+- **Default:** 8 oz
+
+As you drag, an `input` event listener updates the `#amount-slider-current` label above the track in real time so you always see the selected value before you commit to logging it.
+
+```js
+amountSlider.addEventListener('input', () => {
+    amountSliderCurrent.innerHTML = amountSlider.value;
+});
+```
+
+When you are happy with the displayed value, press the **Log** button to record it.
+
+## The Log button
+
+The **Log** button is the commit step for slider-based logging. Pressing it triggers the following sequence:
+
+<Steps>
+  <Step title="Confetti celebration fires">
+    `celebrate()` is called, launching the confetti burst identical to a chip tap.
+  </Step>
+  <Step title="Pop animation plays on the intake counter">
+    The `pop` class is added to `#intake`, triggering the scale-and-color animation.
+  </Step>
+  <Step title="logDrink() is called with the slider value">
+    The current slider value is read with `parseInt(amountSlider.value, 10)` and passed to `logDrink()`, which persists the drink and updates the total.
+  </Step>
+  <Step title="Slider resets to 8 oz">
+    Both the visible label (`#amount-slider-current`) and the slider thumb (`amountSlider.value`) are reset to `8`, ready for the next log.
+  </Step>
+</Steps>
+
+```js
+logButton.addEventListener('click', () => {
+    celebrate();
+    if (intake) intake.classList.add('pop');
+
+    const amount = parseInt(amountSlider.value, 10);
+    logDrink(amount);
+
+    // Reset slider location
+    if (amountSliderCurrent) amountSliderCurrent.innerHTML = '8';
+    if (amountSlider) amountSlider.value = 8;
+});
+```
+
+<Note>
+  The intake counter shows the **running total for the current session**. It does not automatically reset at midnight — the counter keeps accumulating across page loads until you manually clear it. Use the **Reset** button inside the Settings panel to wipe the total and start fresh each day.
+</Note>
+
+## Intake counter animation
+
+Every time a drink is logged — whether via a chip or the Log button — the large `#intake` number at the top of the page plays the `pop` keyframe animation:
+
+```css
+@keyframes pop {
+    0%   { color: auto; }
+    50%  { color: var(--accent); transform: scale(1.1); }
+    100% { color: auto; }
+}
+
+.pop { animation: pop 0.4s forwards; }
+```
+
+The number scales up to 110 % of its size and changes colour to `#6fcdff` at the midpoint, then returns to its resting state. The animation runs for **0.4 seconds**. Once it ends, an `animationend` listener removes the `pop` class so the animation can fire again on the very next drink:
+
+```js
+intake.addEventListener('animationend', () => {
+    intake.classList.remove('pop');
+});
+```

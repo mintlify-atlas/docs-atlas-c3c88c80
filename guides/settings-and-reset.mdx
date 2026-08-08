@@ -1,0 +1,119 @@
+---
+title: "Open Settings and Reset Your Water Data"
+sidebarTitle: "Settings & Reset"
+description: "WaterTrack's settings panel lets you wipe all stored water data and start fresh. Learn how to open the panel and what the reset action does under the hood."
+---
+
+WaterTrack's settings panel is accessed via the gear icon (⚙) in the page header and currently provides one action: a **full data reset** that clears both the running total and the entire drink history from `localStorage`. It is the intended way to start a fresh daily session whenever you are ready to begin a new day of tracking.
+
+## Opening the settings panel
+
+Click the **⚙ gear icon** in the top-right corner of the header to open the settings panel. The panel appears as a centred modal fixed to the middle of the viewport:
+
+```css
+#settings-panel {
+    position: fixed;
+    z-index: 1000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    border-radius: 10px;
+    border: 2px solid var(--accent);
+}
+```
+
+The panel is hidden by default (`display: none`) and becomes visible when the `.open` class is toggled onto `#settings-panel`:
+
+```css
+#settings-panel.open {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+```
+
+Clicking the gear icon again removes `.open` and hides the panel. This toggle is wired up with a single event listener:
+
+```js
+settingsIcon.addEventListener('click', () => {
+    settingsPanel.classList.toggle('open');
+});
+```
+
+A reminder inside the panel reads *"To close, press settings icon again"* so first-time users know how to dismiss it.
+
+## The Reset button
+
+Inside the settings panel, the red **Reset** button triggers a two-step confirmation-and-clear process.
+
+<Steps>
+  <Step title="Confirmation dialog">
+    Clicking **Reset** immediately shows a browser-native `confirm()` dialog:
+
+    > *"Are you sure you want to reset all data? This will clear the current amount and all logged drinks."*
+
+    If you press **Cancel**, nothing changes and the settings panel remains open.
+  </Step>
+  <Step title="Data is wiped">
+    If you press **OK**, the following happens in order:
+
+    1. `water_total_intake` is removed from `localStorage`
+    2. `water_logged_drinks` is removed from `localStorage`
+    3. `totalIntake` is reset to `0` in memory
+    4. `loggedDrinksList` is reset to `[]` in memory
+    5. The intake counter on screen is updated to `0`
+    6. The drink list is replaced with the empty state: *"No drinks logged yet today!"*
+    7. The settings panel is closed (`.open` class is removed)
+  </Step>
+</Steps>
+
+```js
+resetButton.addEventListener('click', () => {
+    const confirmReset = confirm(
+        'Are you sure you want to reset all data? This will clear the current amount and all logged drinks.'
+    );
+
+    if (confirmReset) {
+        localStorage.removeItem(INTAKE_KEY);   // 'water_total_intake'
+        localStorage.removeItem(DRINKS_KEY);   // 'water_logged_drinks'
+
+        totalIntake = 0;
+        loggedDrinksList = [];
+
+        intake.childNodes[0].nodeValue = `${totalIntake} `;
+        drinks.innerHTML = '<li class="empty-state">No drinks logged yet today!</li>';
+
+        settingsPanel.classList.remove('open');
+    }
+});
+```
+
+<Warning>
+  The reset action is **irreversible**. All drink history and the running total are permanently deleted from `localStorage` the moment you confirm. There is no undo, no trash bin, and no recovery path — once cleared, the data is gone.
+</Warning>
+
+## Accessibility
+
+The gear icon is wrapped in a `<button>` element so it is keyboard-focusable by default. It carries an `aria-label` on the inner SVG for screen-reader users:
+
+```html
+<button id="settings-icon-btn">
+  <svg id="settings-icon" aria-label="Open Settings" ...>
+    ...
+  </svg>
+</button>
+```
+
+When the button receives keyboard focus, a `:focus-visible` outline is drawn using the `--accent` colour (`#6fcdff`), ensuring the focus ring is visible against both light and dark backgrounds without appearing during mouse clicks:
+
+```css
+#settings-icon-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+```
+
+Keyboard users can **Tab** to the settings button and activate it with **Enter** or **Space** exactly as they would any native button.

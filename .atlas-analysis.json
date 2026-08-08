@@ -1,0 +1,55 @@
+{
+  "projectType": "saas",
+  "projectName": "WaterTrack",
+  "projectDescription": "A browser-based daily water intake tracker with quick-log chips, a custom amount slider, a timestamped drink log, and localStorage persistence — no account or server required.",
+  "theme": "almond",
+  "primaryColor": "#6fcdff",
+  "lightColor": "#94daff",
+  "darkColor": "#36c3ff",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": ["introduction", "quickstart"]
+      },
+      {
+        "group": "Using WaterTrack",
+        "pages": [
+          "guides/logging-water",
+          "guides/drink-log",
+          "guides/settings-and-reset"
+        ]
+      },
+      {
+        "group": "Reference",
+        "pages": [
+          "reference/localStorage",
+          "reference/customization"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "One-tap quick-log chips for common amounts (4, 8, 12, 16, 24 oz)",
+    "Custom amount slider (2–80 oz in 2 oz increments)",
+    "Timestamped drink log displayed newest-first",
+    "localStorage persistence — data survives page reloads without a server",
+    "Confetti celebration on every logged drink",
+    "Dark mode support via CSS media query",
+    "Settings panel with full data reset",
+    "Animated intake counter with pop effect"
+  ],
+  "publicApiSurface": [
+    "localStorage key: water_total_intake (JSON number)",
+    "localStorage key: water_logged_drinks (JSON array of {amount, time})",
+    "logDrink(amount) — internal function: updates total, appends entry, persists to localStorage",
+    "saveToLs(name, item) — serializes and writes a value to localStorage",
+    "loadfromLs(name) — reads and deserializes a value from localStorage",
+    "celebrate() — fires confetti via @hiseb/confetti",
+    "getFormattedTime() — returns locale-formatted HH:MM time string",
+    "renderDrinkUI(amount, time) — appends a drink entry <li> to the DOM list",
+    "CSS variable --accent (#6fcdff)",
+    "CSS variable --gradient (linear-gradient #94daff → #6fcdff)",
+    "CSS variable --warning (linear-gradient #ff6f6f → #ff5252)"
+  ]
+}
